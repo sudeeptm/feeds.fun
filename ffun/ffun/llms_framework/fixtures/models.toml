@@ -107,3 +107,12 @@
   max_tokens_per_entry = 300000
   input_1m_tokens_cost = '0.075'
   output_1m_tokens_cost = '0.3'
+
+[[models]]
+  provider = "local"
+  name = "local-default"
+  max_context_size = 32768
+  max_return_tokens = 4096
+  max_tokens_per_entry = 300000
+  input_1m_tokens_cost = '0.0'
+  output_1m_tokens_cost = '0.0'

@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from ffun.auth.settings import primary_oidc_service_id, single_user_service_id
+from ffun.auth.settings import single_user_service_id
 from ffun.core.postgresql import execute
 from ffun.core.tests.helpers import (
     Delta,
@@ -33,30 +33,20 @@ class TestAddMapping:
         with capture_logs() as logs:
             async with TableSizeDelta("u_users", delta=1):
                 async with TableSizeDelta("u_mapping", delta=1):
-                    internal_user_id = await add_mapping(primary_oidc_service_id, external_user_id)
+                    internal_user_id = await add_mapping(single_user_service_id, external_user_id)
 
-        assert await get_mapping(primary_oidc_service_id, external_user_id) == internal_user_id
+        assert await get_mapping(single_user_service_id, external_user_id) == internal_user_id
 
         assert_logs_has_business_event(logs, "user_created", user_id=internal_user_id)
-
-    @pytest.mark.asyncio
-    async def test_different_service(self, external_user_id: str) -> None:
-        async with TableSizeDelta("u_users", delta=2):
-            async with TableSizeDelta("u_mapping", delta=2):
-                internal_user_id_1 = await add_mapping(primary_oidc_service_id, external_user_id)
-                internal_user_id_2 = await add_mapping(single_user_service_id, external_user_id)
-
-        assert await get_mapping(primary_oidc_service_id, external_user_id) == internal_user_id_1
-        assert await get_mapping(single_user_service_id, external_user_id) == internal_user_id_2
 
     @pytest.mark.asyncio
     async def test_existing_user(self, external_user_id: str, internal_user_id: UserId) -> None:
         with capture_logs() as logs:
             async with TableSizeNotChanged("u_users"):
                 async with TableSizeNotChanged("u_mapping"):
-                    assert await add_mapping(primary_oidc_service_id, external_user_id) == internal_user_id
+                    assert await add_mapping(single_user_service_id, external_user_id) == internal_user_id
 
-        assert await get_mapping(primary_oidc_service_id, external_user_id) == internal_user_id
+        assert await get_mapping(single_user_service_id, external_user_id) == internal_user_id
 
         assert_logs_has_no_business_event(logs, "user_created")
 
@@ -67,13 +57,6 @@ class TestGetMapping:
     @pytest.mark.asyncio
     async def test_no_user_found(self, external_user_id: str) -> None:
         with pytest.raises(errors.NoUserMappingFound):
-            await get_mapping(primary_oidc_service_id, external_user_id)
-
-    @pytest.mark.asyncio
-    async def test_no_user_found_for_another_service(self, external_user_id: str) -> None:
-        await add_mapping(primary_oidc_service_id, external_user_id)
-
-        with pytest.raises(errors.NoUserMappingFound):
             await get_mapping(single_user_service_id, external_user_id)
 
 
@@ -83,7 +66,7 @@ class TestCountTotalUsers:
     async def test(self) -> None:
         async with Delta(count_total_users, delta=3):
             for _ in range(3):
-                await add_mapping(primary_oidc_service_id, uuid.uuid4().hex)
+                await add_mapping(single_user_service_id, uuid.uuid4().hex)
 
 
 class TestStoreUser:
@@ -131,7 +114,7 @@ class TestGetUserExternalIds:
     async def test_single_mappings(self, internal_user_id: UserId, external_user_id: str) -> None:
         mapping = await get_user_external_ids(internal_user_id)
 
-        assert mapping == {primary_oidc_service_id: external_user_id}
+        assert mapping == {single_user_service_id: external_user_id}
 
 
 # TODO: add tests for multiple mappings when we support it
@@ -141,13 +124,13 @@ class TestUnlinkUser:
     async def test_no_mappings(self) -> None:
         user_id = new_user_id()
         async with TableSizeNotChanged("u_mapping"):
-            await unlink_user(primary_oidc_service_id, user_id)
+            await unlink_user(single_user_service_id, user_id)
 
     @pytest.mark.asyncio
     async def test_single_mappings(self, internal_user_id: UserId) -> None:
         async with TableSizeNotChanged("u_users"):
             async with TableSizeDelta("u_mapping", delta=-1):
-                await unlink_user(primary_oidc_service_id, internal_user_id)
+                await unlink_user(single_user_service_id, internal_user_id)
 
         mapping = await get_user_external_ids(internal_user_id)
 

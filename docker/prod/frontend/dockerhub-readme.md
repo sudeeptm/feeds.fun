@@ -28,4 +28,3 @@ Check instructions in the [docs/examples/single-user](docs/examples/single-user)
 Instructions for docker-based installation:
 
 - [single-user setup](docs/examples/single-user)
-- [multi-user setup](docs/examples/multi-user)

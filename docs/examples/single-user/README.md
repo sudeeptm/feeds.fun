@@ -18,11 +18,12 @@ Below you can find some really important notes about running Feeds Fun as a perm
 
 Set API keys in the settings section of the site to turn on the LLM-based tagging.
 
-Tag processor configs can be found in [./tag_processors.yml](./tag_processors.yml) file. Prompts in them are similar to the ones used on the [feeds.fun](https://feeds.fun) site. You may want to play with them to get the best results for your needs.
+Tag processor configs can be found in [./tag_processors.toml](./tag_processors.toml) file. Prompts in them are similar to the ones used on the [feeds.fun](https://feeds.fun) site. You may want to play with them to get the best results for your needs.
 
 **Best practices:**
 
 - Set an OpenAI or Gemini API key to get the best experience from using the Feeds Fun.
+- For a fully offline experience, use `docker-compose.local-llm.yml` together with `tag_processors.local-llm.toml` to run an OpenAI-compatible local model host (for example, Ollama) and route Feeds Fun requests to it automatically.
 
 ## Caddy server
 

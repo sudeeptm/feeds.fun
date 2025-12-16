@@ -54,8 +54,8 @@ services:
       - ${PWD}/ffun.env:/ffun/.env  # general config
       - ${PWD}/tag_processors.toml:/ffun/tag_processors.toml  # tag processors config
 
-    environment:
-      FFUN_ENABLE_API: "True"
+  environment:
+      FFUN_ENABLE_API_SPA: "True"
       PYTHONOPTIMIZE: "1"
 
   # Background workers for download feeds and tag them

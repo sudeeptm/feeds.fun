@@ -24,6 +24,7 @@ class LLMProvider(enum.StrEnum):
     test = "test"
     openai = "openai"
     google = "google"
+    local = "local"
 
 
 class ModelInfo(pydantic.BaseModel):
