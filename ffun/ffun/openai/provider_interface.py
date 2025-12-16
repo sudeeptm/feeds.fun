@@ -11,7 +11,7 @@ from ffun.llms_framework import errors as llmsf_errors
 from ffun.llms_framework.entities import KeyStatus, LLMConfiguration, LLMProvider
 from ffun.llms_framework.keys_statuses import Statuses
 from ffun.llms_framework.provider_interface import ChatRequest, ChatResponse, ProviderInterface
-from ffun.openai.settings import settings
+from ffun.openai.settings import settings as openai_settings
 
 logger = logging.get_module_logger()
 
@@ -19,10 +19,6 @@ logger = logging.get_module_logger()
 class OpenAIChatRequest(ChatRequest):
     system: str
     user: str
-
-
-def _client(api_key: str) -> openai.AsyncOpenAI:
-    return openai.AsyncOpenAI(api_key=api_key, base_url=settings.api_entry_point, timeout=settings.api_timeout)
 
 
 class OpenAIChatResponse(ChatResponse):
@@ -70,6 +66,19 @@ class OpenAIInterface(ProviderInterface):
     provider = LLMProvider.openai
 
     additional_tokens_per_message: int = 10
+
+    def __init__(
+        self,
+        *,
+        api_entry_point: str | None = None,
+        api_timeout: float | None = None,
+    ) -> None:
+        super().__init__()
+        self.api_entry_point = api_entry_point if api_entry_point is not None else openai_settings.api_entry_point
+        self.api_timeout = api_timeout if api_timeout is not None else openai_settings.api_timeout
+
+    def _client(self, api_key: str) -> openai.AsyncOpenAI:
+        return openai.AsyncOpenAI(api_key=api_key, base_url=self.api_entry_point, timeout=self.api_timeout)
 
     def estimate_tokens(self, config: LLMConfiguration, text: str) -> int:
         encoding = _get_encoding(config.model)
@@ -130,7 +139,7 @@ class OpenAIInterface(ProviderInterface):
                 ]
 
             with track_key_status(api_key, self.api_keys_statuses):
-                answer = await _client(api_key=api_key).responses.create(**attributes)
+                answer = await self._client(api_key=api_key).responses.create(**attributes)
         except openai.APIError as e:
             message = str(e)
             logger.info("openai_api_error", message=message)
@@ -181,7 +190,7 @@ class OpenAIInterface(ProviderInterface):
     async def check_api_key(self, config: LLMConfiguration, api_key: str) -> KeyStatus:
         with track_key_status(api_key, self.api_keys_statuses):
             try:
-                await _client(api_key=api_key).models.list()
+                await self._client(api_key=api_key).models.list()
             except openai.APIError:
                 pass
 

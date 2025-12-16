@@ -15,6 +15,8 @@ Changes:
 - ff-576 — Track clicks on authentication-related buttons.
 - ff-565 — Correct properties for session cookies (SPA <-> auth-proxy).
 - ff-579 — Removed api methods with optional authentication. Not all auth proxies work well with optional auth.
+- Removed multi-user support; the application now always runs in a forced single-user mode.
+- Added support for a local OpenAI-compatible LLM provider for self-hosted setups.
 
 Dev environment changes:
 

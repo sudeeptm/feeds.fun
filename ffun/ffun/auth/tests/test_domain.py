@@ -7,7 +7,7 @@ from ffun.auth.domain import (
     logout_user_from_all_sessions_in_service,
     remove_user_from_external_service,
 )
-from ffun.auth.settings import primary_oidc_service_id, single_user_service_id
+from ffun.auth.settings import single_user_service_id
 from ffun.domain.entities import IdPId, UserId
 
 
@@ -48,13 +48,12 @@ class TestLogoutUserFromAllSessions:
     @pytest.mark.asyncio
     async def test_logout_user(self, internal_user_id: UserId, mocker: MockerFixture) -> None:
         get_user_external_ids = mocker.patch("ffun.users.domain.get_user_external_ids")
-        get_user_external_ids.return_value = {primary_oidc_service_id: "oidc_id", single_user_service_id: "single_id"}
+        get_user_external_ids.return_value = {single_user_service_id: "single_id"}
 
         logout_user = mocker.patch("ffun.auth.domain.logout_user_from_all_sessions_in_service")
 
         await logout_user_from_all_sessions(internal_user_id)
 
-        assert logout_user.call_count == 2
+        assert logout_user.call_count == 1
 
-        logout_user.assert_any_call(primary_oidc_service_id, "oidc_id")
         logout_user.assert_any_call(single_user_service_id, "single_id")

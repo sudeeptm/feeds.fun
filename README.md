@@ -20,7 +20,7 @@ Roadmap: [long-term plans](https://github.com/users/Tiendil/projects/1/views/1?p
 
 # Features
 
-- Multi-/single-user.
+- Single-user.
 - Feeds management.
 - Automatic tag assignment for every news entry.
 - Rules to score news by tags.
@@ -52,7 +52,6 @@ Check instructions in the [docs/examples/single-user](docs/examples/single-user)
 Instructions for docker-based installation:
 
 - [single-user setup](docs/examples/single-user)
-- [multi-user setup](docs/examples/multi-user)
 
 Also:
 
@@ -119,7 +118,7 @@ Currently implemented processors:
 
 LLM tag processors are the primary source of tags for Feeds Fun.
 
-Currently, we support two API providers: OpenAI (ChatGPT) and Google (Gemini). In the future, there will be more, including self-hosted.
+Currently, we support three API providers: OpenAI (ChatGPT), Google (Gemini), and a local OpenAI-compatible endpoint (for example, Ollama).
 
 By default, LLM processors will skip feeds from default collections and use user API keys to process their news.
 
@@ -134,6 +133,12 @@ You can set custom URLs as entry points for OpenAi and Gemini API by setting nth
 ```
 FFUN_OPENAI_API_ENTRY_POINT="<your url>"
 FFUN_GOOGLE_GEMINI_API_ENTRY_POINT="<your url>"
+```
+
+For a fully local setup, point Feeds Fun to an OpenAI-compatible local model host (for example, Ollama) via:
+
+```
+FFUN_LOCAL_LLM_API_ENTRY_POINT="http://<host>:11434/v1"
 ```
 
 That will allow you to use any compatible API provider.
@@ -196,12 +201,9 @@ FFUN_ENVIRONMENT="prod"
 # Required for API server.
 FFUN_ENABLE_API_SPA="True"
 
-# If you want Feeds Fun in a multi-user mode, you need a more complex setup, check examples mentioned above.
-
-# Set fixed identity provider & user id for single-user setup.
-# Remove these settings for multi-user setup.
-FFUN_AUTH_FORCE_EXTERNAL_USER_ID="dev-user"
-FFUN_AUTH_FORCE_EXTERNAL_IDENTITY_PROVIDER_ID="single_user"
+# Feeds Fun always runs in a single-user mode. Override these values to change the default user id if needed.
+FFUN_AUTH_SINGLE_USER_EXTERNAL_ID="dev-user"
+FFUN_AUTH_SINGLE_USER_IDENTITY_PROVIDER_ID="single_user"
 
 FFUN_APP_DOMAIN="your.domain.com"
 
@@ -255,16 +257,14 @@ All logic is split between tag processors. Each processor implements a single ap
 
 ## Preparations
 
-To use less hacks in dev configuration and be more consistent with production setup, we use custom domains `feeds.fun.local` & `idp.feeds.fun.local` for local development.
+To use fewer hacks in dev configuration and be more consistent with production setup, we use a custom domain `feeds.fun.local` for local development.
 
-- `feeds.fun.local` — Feeds Fun service;
-- `idp.feeds.fun.local` — identity provider, such as Keycloak, for multi-user mode.
+- `feeds.fun.local` — Feeds Fun service.
 
 Add the following line to your `/etc/hosts` file:
 
 ```
 127.0.0.1 feeds.fun.local
-127.0.0.1 idp.feeds.fun.local
 ```
 
 Then, you can access the site at http://feeds.fun.local/
@@ -288,11 +288,7 @@ Build some docker images
 Start the API server and frontend:
 
 ```
-# single-user mode
-docker compose --profile single-user up -d
-
-# multi-user mode
-# docker compose --profile multi-user up -d
+docker compose up -d
 ```
 
 The site will be accessible at http://feeds.fun.local/
